@@ -6,6 +6,13 @@
 <meta name="theme-color" content="#f7f3ec">
 <title>看山进化 · 你的知识室友</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦊</text></svg>">
+<!-- PWA：可安装到手机桌面 / 电脑应用列表 -->
+<link rel="manifest" href="manifest.json">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="看山">
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%23f7f3ec'/><text y='.92em' x='6' font-size='78'>🦊</text></svg>">
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -228,6 +235,7 @@
     <div class="read-actions">
       <p class="read-reaction" id="read-reaction" hidden></p>
       <button id="read-done" class="btn btn-primary btn-lg" disabled>读完了</button>
+      <button id="read-next" class="btn btn-ghost btn-lg">换一篇 →</button>
       <p class="read-hint">属性 +10 · 好感度 +3</p>
     </div>
   </main>
@@ -341,6 +349,34 @@
 
 <!-- Toast -->
 <div id="toast" class="toast" hidden role="status" aria-live="polite"></div>
+
+<!-- ========== 桌宠安装横幅（需求 3） ========== -->
+<div id="install-banner" class="install-banner" hidden role="dialog"
+  aria-labelledby="install-title">
+  <div class="install-pet" id="install-pet" aria-hidden="true"></div>
+  <div class="install-text">
+    <b id="install-title">把它放到桌面上</b>
+    <p id="install-desc">装成桌宠，像 App 一样随时点开，离线也能陪你。</p>
+  </div>
+  <div class="install-actions">
+    <button id="install-yes" class="btn btn-primary btn-sm">安装</button>
+    <button id="install-no" class="install-later" aria-label="以后再说">以后再说</button>
+  </div>
+</div>
+
+<!-- iOS 手动安装指引（Safari 不支持自动安装提示） -->
+<div id="ios-guide" class="ios-guide" hidden role="dialog" aria-labelledby="ios-guide-title">
+  <div class="ios-guide-card">
+    <h2 id="ios-guide-title">放到 iPhone 桌面</h2>
+    <ol class="ios-steps">
+      <li>点底部工具栏的<b>分享</b>按钮 <span class="ios-icon">􀈂</span></li>
+      <li>向下滑，选<b>「添加到主屏幕」</b></li>
+      <li>右上角点<b>「添加」</b></li>
+    </ol>
+    <p class="ios-note">之后它就在你桌面上了，点开即用。</p>
+    <button id="ios-guide-close" class="btn btn-primary">知道了</button>
+  </div>
+</div>
 
 <script type="module" src="js/main.js"></script>
 </body>

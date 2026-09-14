@@ -303,6 +303,14 @@ async function openRead(domainKey) {
   $('answer-loading').hidden = false;
   $('answer-body').hidden = true;
   $('read-done').disabled = true;
+  // 「下一篇」按钮每次进入都要显示，读完后才高亮
+  const nextBtn = $('read-next');
+  if (nextBtn) {
+    nextBtn.disabled = false;
+    nextBtn.hidden = false;
+    nextBtn.textContent = '换一篇 →';
+    nextBtn.classList.remove('is-primary-hint');
+  }
 
   // 每次进入阅读页都重置上一次的完成状态
   $('read-back').textContent = '← 换一个领域';
@@ -355,6 +363,13 @@ function onReadDone() {
   // 解锁返回按钮并给出提示
   $('read-back').textContent = '← 返回（已记录）';
   $('read-back').classList.add('is-done');
+
+  // 需求 1：读完后突出「换一篇」，鼓励连续喂养
+  const nextBtn = $('read-next');
+  if (nextBtn) {
+    nextBtn.textContent = '再来一篇 →';
+    nextBtn.classList.add('is-primary-hint');
+  }
 
   // 把进化/阶段提升的回调挂在返回时触发，存到临时变量
   window._pendingReadResult = result;
@@ -1111,6 +1126,87 @@ function bindSwitches() {
   });
 }
 
+// ---------------------------------------------------------------- 桌宠安装（需求 3）
+
+let deferredInstall = null;
+
+/** 是否已经以独立应用（桌宠）方式运行 */
+function isStandalone() {
+  return window.matchMedia('(display-mode: standalone)').matches
+    || window.navigator.standalone === true;
+}
+
+function isIOS() {
+  return /iphone|ipad|ipod/i.test(navigator.userAgent);
+}
+
+function initInstall() {
+  // 注册 Service Worker：提供离线能力，也是可安装的前提
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(() => { /* 离线能力不可用不影响主流程 */ });
+  }
+
+  const banner = $('install-banner');
+  if (!banner) return;
+
+  // 已经装好了就不再打扰
+  if (isStandalone() || state.installDismissed) return;
+
+  // Chrome / Edge / Android：拦截浏览器的安装提示，换成我们自己的横幅
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredInstall = e;
+    showInstallBanner();
+  });
+
+  // iOS Safari 不支持自动安装，领养后给一次手动指引
+  if (isIOS() && state.adopted) {
+    setTimeout(() => showInstallBanner(true), 6000);
+  }
+
+  $('install-yes').addEventListener('click', async () => {
+    banner.hidden = true;
+    if (deferredInstall) {
+      deferredInstall.prompt();
+      const choice = await deferredInstall.userChoice.catch(() => null);
+      deferredInstall = null;
+      if (choice && choice.outcome === 'accepted') {
+        toast('装好了，去桌面找它');
+        state.installDismissed = true;
+        persist();
+      }
+      return;
+    }
+    // 没有原生提示（iOS 等）→ 显示手动步骤
+    $('ios-guide').hidden = false;
+  });
+
+  $('install-no').addEventListener('click', () => {
+    banner.hidden = true;
+    state.installDismissed = true;
+    persist();
+  });
+
+  $('ios-guide-close').addEventListener('click', () => {
+    $('ios-guide').hidden = true;
+    state.installDismissed = true;
+    persist();
+  });
+}
+
+function showInstallBanner(manual = false) {
+  const banner = $('install-banner');
+  if (!banner || isStandalone() || state.installDismissed) return;
+  // 横幅上放一只当前形态的看山，比纯文字更有说服力
+  $('install-pet').innerHTML = renderPet(state.currentForm, {
+    reducedMotion: true, bondColor: nicknameColor()
+  });
+  if (manual) {
+    $('install-desc').textContent = '加到主屏幕，像 App 一样随时点开。';
+  }
+  banner.hidden = false;
+}
+
 // ---------------------------------------------------------------- 领养
 
 function renderAdoptPreview() {  $('adopt-pet').innerHTML = renderPet('origin', { reducedMotion: false });
@@ -1139,6 +1235,9 @@ function doAdopt() {
 
   // 护眼提醒开始计时（需求 5）
   startEyeCare();
+
+  // 桌宠安装能力（需求 3）
+  initInstall();
   setTimeout(() => say('……你好。我先看看你。', 4200), 700);
 }
 
@@ -1172,12 +1271,24 @@ function bindEvents() {
       showPage('home');
 
   // 护眼提醒开始计时（需求 5）
-  startEyeCare();      setTimeout(() => say(done.reaction, 4000), 260);
+  startEyeCare();
+
+  // 桌宠安装能力（需求 3）
+  initInstall();      setTimeout(() => say(done.reaction, 4000), 260);
     } else {
       showPage('domains');
     }
   });
   $('read-done').addEventListener('click', onReadDone);
+
+  // 需求 1：读完可以直接换下一篇，不必退回领域页
+  $('read-next').addEventListener('click', () => {
+    if (!currentDomain) return showPage('domains');
+    const done = window._pendingReadResult;
+    // 已读完的先把反应说掉，再换下一篇
+    if (done) setTimeout(() => say(done.reaction, 3000), 200);
+    openRead(currentDomain);
+  });
 
   // 进化弹层
   $('evolve-close').addEventListener('click', () => {
@@ -1348,6 +1459,9 @@ function init() {
 
   // 护眼提醒开始计时（需求 5）
   startEyeCare();
+
+  // 桌宠安装能力（需求 3）
+  initInstall();
   events.forEach((ev, i) => {
     setTimeout(() => {
       if (ev.type === 'decay') say(ev.text, 4200);

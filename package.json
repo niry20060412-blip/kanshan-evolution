@@ -1,0 +1,23 @@
+{
+  "name": "kanshan-evolution",
+  "version": "1.1.0",
+  "description": "看山进化 — 用知乎知识喂养刘看山的数字室友养成 Web 应用",
+  "type": "module",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node server/index.js",
+    "test": "node tests/rules.test.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "zhihu",
+    "hackathon",
+    "pet",
+    "idle-game"
+  ],
+  "license": "MIT",
+  "dependencies": {}
+}

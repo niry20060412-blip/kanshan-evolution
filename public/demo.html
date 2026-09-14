@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>看山进化 · 演示控制台</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎛</text></svg>">
+<style>
+:root {
+  --bg: #f7f3ec;
+  --card: #fff;
+  --ink: #3d3630;
+  --soft: #655c52;
+  --faint: #8a8176;
+  --line: #e8e0d4;
+  --accent: #e08a5c;
+  --ok: #6fb89a;
+  --warn: #d98b4a;
+  --danger: #d8674f;
+  --panel-w: 400px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+  line-height: 1.6;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+}
+
+/* ── 左侧控制台 ── */
+#console {
+  width: var(--panel-w);
+  min-width: 320px;
+  height: 100vh;
+  overflow-y: auto;
+  padding: 18px 16px 40px;
+  border-right: 1.5px solid var(--line);
+  background: var(--bg);
+  flex-shrink: 0;
+}
+
+#console::-webkit-scrollbar { width: 5px; }
+#console::-webkit-scrollbar-thumb { background: var(--line); border-radius: 99px; }
+
+h1 { font-size: 18px; margin-bottom: 2px; }
+.sub { color: var(--faint); font-size: 12.5px; margin-bottom: 14px; }
+
+.bar {
+  background: #fff4e6;
+  border: 1.5px solid #f0d0aa;
+  border-radius: 10px;
+  padding: 10px 13px;
+  font-size: 12px;
+  color: #8a5a2a;
+  margin-bottom: 14px;
+}
+
+.state {
+  background: var(--card);
+  border: 1.5px solid var(--line);
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-size: 12.5px;
+  margin-bottom: 14px;
+}
+.state b { color: var(--accent); }
+
+.sec {
+  font-size: 13px;
+  font-weight: 600;
+  margin: 18px 0 10px;
+  padding-bottom: 6px;
+  border-bottom: 2px solid var(--line);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.card {
+  background: var(--card);
+  border: 1.5px solid var(--line);
+  border-radius: 12px;
+  padding: 12px 13px;
+  display: flex;
+  flex-direction: column;
+}
+.card h2 { font-size: 13px; margin-bottom: 3px; }
+.card p { font-size: 11.5px; color: var(--faint); flex: 1; margin-bottom: 10px; }
+
+button {
+  width: 100%;
+  border: none;
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-size: 12.5px;
+  font-weight: 600;
+  background: var(--accent);
+  color: #fff;
+  cursor: pointer;
+  font-family: inherit;
+  transition: transform .12s, opacity .12s;
+  margin-top: auto;
+}
+button:hover { opacity: .88; }
+button:active { transform: scale(.97); }
+button.ghost { background: #fff; color: var(--soft); border: 1.5px solid var(--line); }
+button.danger { background: var(--danger); }
+
+.row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+.row button { width: auto; padding: 7px 14px; font-size: 12px; }
+
+.tag {
+  display: inline-block;
+  background: var(--line);
+  color: var(--soft);
+  border-radius: 999px;
+  padding: 1px 8px;
+  font-size: 11px;
+  margin-right: 5px;
+}
+
+#toast {
+  position: fixed;
+  left: calc(var(--panel-w) / 2);
+  bottom: 22px;
+  transform: translateX(-50%);
+  background: var(--ink);
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 999px;
+  font-size: 13px;
+  display: none;
+  z-index: 999;
+  box-shadow: 0 8px 24px rgba(0,0,0,.22);
+  white-space: nowrap;
+}
+
+a.plain { color: var(--accent); text-decoration: none; font-weight: 600; }
+
+/* ── 右侧应用预览 ── */
+#preview {
+  flex: 1;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #ede8e0;
+}
+
+#preview-header {
+  height: 40px;
+  background: var(--card);
+  border-bottom: 1.5px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  flex-shrink: 0;
+}
+#preview-header span { font-size: 12.5px; color: var(--faint); }
+#reload-btn {
+  width: auto;
+  padding: 5px 14px;
+  font-size: 12px;
+  background: var(--card);
+  color: var(--soft);
+  border: 1.5px solid var(--line);
+  border-radius: 999px;
+  cursor: pointer;
+}
+#reload-btn:hover { background: var(--bg); }
+
+#app-frame {
+  flex: 1;
+  border: none;
+  width: 100%;
+  /* 模拟手机窗口宽度，居中展示 */
+  max-width: 480px;
+  margin: 0 auto;
+  display: block;
+  background: #fff;
+  box-shadow: 0 0 40px rgba(0,0,0,.10);
+}
+</style>
+</head>
+<body>
+
+<!-- 左侧控制台 -->
+<div id="console">
+  <h1>演示控制台</h1>
+  <p class="sub">写入存档后自动刷新右侧预览，无需跳页。</p>
+
+  <div class="bar">
+    直接操控右侧主应用。存档写入后右侧会自动刷新。
+    也可单独访问 <a class="plain" href="/" target="_blank">主应用</a>。
+  </div>
+
+  <div class="state" id="state">读取存档中…</div>
+
+  <div class="sec">① 场景直达</div>
+  <div class="grid">
+    <div class="card">
+      <h2>全新开始</h2>
+      <p>清空进度，回到领养页。</p>
+      <button class="danger" onclick="act('fresh')">重置</button>
+    </div>
+    <div class="card">
+      <h2>刚进化完</h2>
+      <p>再喂一篇科技即可看到进化光效。</p>
+      <button onclick="act('preEvolve')">进化前</button>
+    </div>
+    <div class="card">
+      <h2>空房间</h2>
+      <p>它出门中，主页变空房间。</p>
+      <button onclick="act('away')">看空房间</button>
+    </div>
+    <div class="card">
+      <h2>它回来了</h2>
+      <p>外出到期，点主页按钮听见闻。</p>
+      <button onclick="act('back')">跳到归来</button>
+    </div>
+    <div class="card">
+      <h2>图鉴半满</h2>
+      <p>9 种形态 + 4 件纪念品。</p>
+      <button onclick="act('gallery')">看图鉴</button>
+    </div>
+    <div class="card">
+      <h2>羁绊结局</h2>
+      <p>好感度 1200，全属性拉满。</p>
+      <button onclick="act('bond')">看结局</button>
+    </div>
+  </div>
+
+  <div class="sec">② 好感度五阶段</div>
+  <div class="grid">
+    <div class="card">
+      <h2>陌生 · 0</h2>
+      <p>叫你「那个人类」，话很短。</p>
+      <button class="ghost" onclick="setStage(50)">跳到陌生</button>
+    </div>
+    <div class="card">
+      <h2>眼熟 · 100</h2>
+      <p>开始搭话，解锁外出。</p>
+      <button class="ghost" onclick="setStage(150)">跳到眼熟</button>
+    </div>
+    <div class="card">
+      <h2>熟络 · 300</h2>
+      <p>直接叫昵称，讲自己的事。</p>
+      <button class="ghost" onclick="setStage(400)">跳到熟络</button>
+    </div>
+    <div class="card">
+      <h2>依赖 · 600</h2>
+      <p>叫「我的人类」，会撒娇。</p>
+      <button class="ghost" onclick="setStage(750)">跳到依赖</button>
+    </div>
+    <div class="card">
+      <h2>羁绊 · 1000</h2>
+      <p>专属爱称，语气笃定。</p>
+      <button class="ghost" onclick="setStage(1100)">跳到羁绊</button>
+    </div>
+  </div>
+
+  <div class="sec">③ 形态速览</div>
+  <div class="grid" id="formGrid"></div>
+
+  <div class="sec">④ 快捷操作</div>
+  <div class="state">
+    <div class="row">
+      <button class="ghost" onclick="toggleDemo()">切演示模式</button>
+      <button class="ghost" onclick="addAff(100)">好感 +100</button>
+      <button class="ghost" onclick="finishOuting()">外出立刻到期</button>
+      <button class="ghost" onclick="unlockAll()">解锁全部</button>
+      <button class="danger" onclick="act('fresh')">清空存档</button>
+    </div>
+    <p style="font-size:11.5px;color:var(--faint);margin-top:10px">
+      深夜人格依赖系统时间，需把电脑时间调到 23:00 后才能看到。
+    </p>
+  </div>
+</div>
+
+<!-- 右侧应用预览 -->
+<div id="preview">
+  <div id="preview-header">
+    <span id="preview-status">主应用预览</span>
+    <button id="reload-btn" onclick="reloadFrame()">↺ 刷新</button>
+  </div>
+  <iframe id="app-frame" src="/" title="看山进化主应用"></iframe>
+</div>
+
+<div id="toast"></div>
+
+<script type="module">
+import { ALL_FORMS, FORM_MAP } from './js/config/forms.js';
+import { SOUVENIRS } from './js/config/souvenirs.js';
+import { NPCS } from './js/config/npc.js';
+import { getStage } from './js/config/affinity.js';
+
+const KEY = 'kanshan-evolution-save-v1';
+const today = () => new Date().toISOString().slice(0, 10);
+
+function baseSave(over = {}) {
+  const now = Date.now();
+  return Object.assign({
+    version: 1, adopted: true, nickname: '新玹', petName: '',
+    adoptedAt: now - 5 * 86400000,
+    attrs: { tech: 0, art: 0, work: 0, emotion: 0, life: 0, history: 0 },
+    affinity: 0, reachedStage: 'stranger',
+    currentForm: 'origin', unlockedForms: ['origin'], souvenirs: [],
+    memories: [], domainCounts: {}, recentAnswers: [], recentOutings: [],
+    chatSummary: [], npcVisit: null, metNpcs: [],
+    lastInteractAt: null, lastChatAt: null,
+    lastLoginDate: today(), loginStreak: 3,
+    outing: null, demoMode: true, reducedMotion: false,
+    features: {
+      outingChat: true, eyeCare: true,
+      callWhenAway: true, floatingMode: false
+    },
+    eyeCare: { sessionStart: null, lastRemindAt: null },
+    featuresMigratedV2: true,
+    dailyCaps: { date: today(), minigame: 0, outing: 0, chatRounds: 0 }
+  }, over);
+}
+
+function read() {
+  try { return JSON.parse(localStorage.getItem(KEY)) || null; } catch { return null; }
+}
+function write(s) { localStorage.setItem(KEY, JSON.stringify(s)); }
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.display = 'block';
+  clearTimeout(t._t);
+  t._t = setTimeout(() => { t.style.display = 'none'; }, 1800);
+}
+
+/** 写入存档后只刷新 iframe，不新开标签页 */
+function go(msg) {
+  toast(msg + ' → 已刷新预览');
+  setTimeout(() => reloadFrame(), 300);
+  setTimeout(renderState, 500);
+}
+
+window.reloadFrame = () => {
+  const f = document.getElementById('app-frame');
+  f.src = f.src;
+};
+
+const SAMPLE_ANSWER = {
+  title: '大模型到底有没有在「理解」？',
+  excerpt: '争论的关键其实不在模型，而在「理解」这个词本身。我们判断一个人听懂了，靠的是他能否在新语境里正确复用。',
+  domain: 'tech', at: Date.now()
+};
+
+const SAMPLE_OUTING = {
+  id: 'demo-outing-1',
+  text: '我今天蹲在科技区看他们吵架，两拨人为了「模型到底懂不懂自己在说什么」吵了三百层楼。我看了半天，觉得他们其实在吵「什么叫懂」。你说，你怎么判断一个人是真听懂了你说的话？',
+  source: 'local',
+  npc: { id: 'turtle', name: '哲学乌龟', line: '今天碰到乌龟了，它又问我什么是自由，我说是不用出门，它好像被冒犯了。' },
+  souvenir: 'screw', at: Date.now() - 60000, responded: false
+};
+
+// ── 场景 ──
+
+const SCENES = {
+  fresh() {
+    localStorage.removeItem(KEY);
+    return '已清空存档';
+  },
+  preEvolve() {
+    write(baseSave({
+      attrs: { tech: 40, art: 0, work: 0, emotion: 0, life: 10, history: 0 },
+      affinity: 60, reachedStage: 'stranger',
+      domainCounts: { tech: 4, life: 1 }, recentAnswers: [SAMPLE_ANSWER]
+    }));
+    return '再喂一篇科技就会进化';
+  },
+  away() {
+    const now = Date.now();
+    write(baseSave({
+      attrs: { tech: 60, art: 20, work: 50, emotion: 10, life: 30, history: 10 },
+      affinity: 180, reachedStage: 'familiar', currentForm: 'engineer',
+      unlockedForms: ['origin', 'engineer', 'worker'],
+      domainCounts: { tech: 6, work: 5 }, recentAnswers: [SAMPLE_ANSWER],
+      outing: {
+        startAt: now - 3 * 60000, returnAt: now + 7 * 60000,
+        note: '去看看科技区最近在吵什么', claimed: false, id: 'demo-away'
+      }
+    }));
+    return '空房间已设置';
+  },
+  back() {
+    const now = Date.now();
+    write(baseSave({
+      attrs: { tech: 60, art: 20, work: 50, emotion: 10, life: 30, history: 10 },
+      affinity: 180, reachedStage: 'familiar', currentForm: 'engineer',
+      unlockedForms: ['origin', 'engineer', 'worker'],
+      domainCounts: { tech: 6, work: 5 }, recentAnswers: [SAMPLE_ANSWER],
+      metNpcs: ['turtle'],
+      outing: {
+        startAt: now - 12 * 60000, returnAt: now - 60000,
+        note: '去看看科技区最近在吵什么', claimed: false, id: 'demo-back'
+      }
+    }));
+    return '点主页「它回来了」听见闻';
+  },
+  gallery() {
+    write(baseSave({
+      attrs: { tech: 90, art: 80, work: 70, emotion: 60, life: 70, history: 50 },
+      affinity: 420, reachedStage: 'close', currentForm: 'cyber_artist',
+      unlockedForms: ['origin', 'engineer', 'painter', 'worker', 'warm',
+        'homebody', 'storyteller', 'cyber_artist', 'geek'],
+      souvenirs: ['screw', 'ticket', 'ginkgo', 'candy']
+        .map((id, i) => ({ id, at: Date.now() - i * 86400000 })),
+      domainCounts: { tech: 9, art: 8, work: 7, life: 7, emotion: 6, history: 5 },
+      recentAnswers: [SAMPLE_ANSWER], recentOutings: [SAMPLE_OUTING],
+      metNpcs: ['turtle', 'hamster', 'parrot']
+    }));
+    return '图鉴 9/19，4 件纪念品';
+  },
+  bond() {
+    write(baseSave({
+      attrs: { tech: 110, art: 105, work: 100, emotion: 108, life: 102, history: 100 },
+      affinity: 1200, reachedStage: 'bond', petName: '小暖灯',
+      currentForm: 'bond',
+      unlockedForms: ALL_FORMS.map((f) => f.id),
+      souvenirs: SOUVENIRS.map((s, i) => ({ id: s.id, at: Date.now() - i * 86400000 })),
+      memories: ['考研复习', '毕业设计', '想去海边'].map((k) => ({ keyword: k, at: Date.now() })),
+      domainCounts: { tech: 12, art: 11, work: 10, emotion: 11, life: 10, history: 10 },
+      recentAnswers: [SAMPLE_ANSWER], recentOutings: [SAMPLE_OUTING],
+      metNpcs: NPCS.map((n) => n.id)
+    }));
+    return '羁绊形态 + 年度纪念册已解锁';
+  }
+};
+
+window.act = (name) => {
+  if (name === 'fresh' && !confirm('确定清空所有进度吗？')) return;
+  const msg = SCENES[name]();
+  go(msg);
+};
+
+window.setStage = (affinity) => {
+  const s = read() || baseSave();
+  s.adopted = true;
+  s.affinity = affinity;
+  s.reachedStage = getStage(affinity).key;
+  if (s.reachedStage === 'bond' && !s.petName) s.petName = '小暖灯';
+  if (affinity >= 1000) {
+    s.attrs = { tech: 110, art: 105, work: 100, emotion: 108, life: 102, history: 100 };
+  }
+  write(s);
+  go(`好感度设为 ${affinity}（${getStage(affinity).name}）`);
+};
+
+function attrsForForm(form) {
+  const base = { tech: 0, art: 0, work: 0, emotion: 0, life: 0, history: 0 };
+  if (form.type === 'solo') return { ...base, [form.primary]: 90 };
+  if (form.type === 'dual') return { ...base, [form.primary]: 90, [form.secondary]: 75 };
+  if (form.type === 'balance') return { tech: 95, art: 95, work: 95, emotion: 95, life: 95, history: 95 };
+  if (form.type === 'endgame') return { tech: 110, art: 105, work: 100, emotion: 108, life: 102, history: 100 };
+  return base;
+}
+
+window.setForm = (id) => {
+  const form = FORM_MAP[id];
+  if (!form) return;
+  const s = read() || baseSave();
+  s.adopted = true;
+  s.attrs = attrsForForm(form);
+  s.currentForm = id;
+  if (!s.unlockedForms.includes(id)) s.unlockedForms.push(id);
+  if (form.type === 'endgame') {
+    s.affinity = 1200;
+    s.reachedStage = 'bond';
+    if (!s.petName) s.petName = '小暖灯';
+  } else if (s.affinity < 100) {
+    s.affinity = 180;
+    s.reachedStage = 'familiar';
+  }
+  write(s);
+  go(`已变成${form.name}`);
+};
+
+window.toggleDemo = () => {
+  const s = read();
+  if (!s) return toast('还没有存档，先选一个场景');
+  s.demoMode = !s.demoMode;
+  write(s);
+  toast(s.demoMode ? '演示模式开：外出 10 分钟' : '演示模式关：外出 4~6 小时');
+  renderState();
+};
+
+window.addAff = (n) => {
+  const s = read();
+  if (!s) return toast('还没有存档，先选一个场景');
+  s.affinity += n;
+  const st = getStage(s.affinity);
+  const order = ['stranger', 'familiar', 'close', 'attached', 'bond'];
+  if (order.indexOf(st.key) > order.indexOf(s.reachedStage)) s.reachedStage = st.key;
+  if (st.key === 'bond' && !s.petName) s.petName = '小暖灯';
+  write(s);
+  go(`好感度 +${n} → ${s.affinity}（${st.name}）`);
+};
+
+window.finishOuting = () => {
+  const s = read();
+  if (!s) return toast('还没有存档，先选一个场景');
+  if (!s.outing || s.outing.claimed) return toast('它现在不在外面');
+  s.outing.returnAt = Date.now() - 1000;
+  write(s);
+  go('外出已到期，右侧点「它回来了」');
+};
+
+window.unlockAll = () => {
+  const s = read() || baseSave();
+  s.adopted = true;
+  s.unlockedForms = ALL_FORMS.map((f) => f.id);
+  s.souvenirs = SOUVENIRS.map((x, i) => ({ id: x.id, at: Date.now() - i * 3600000 }));
+  s.metNpcs = NPCS.map((n) => n.id);
+  write(s);
+  go('全部形态与纪念品已解锁');
+};
+
+// ── 渲染 ──
+
+function renderState() {
+  const s = read();
+  const el = document.getElementById('state');
+  if (!s || !s.adopted) {
+    el.innerHTML = '当前：<b>还没有存档</b>（主应用会显示领养页）';
+    return;
+  }
+  const st = getStage(s.affinity);
+  const form = FORM_MAP[s.currentForm];
+  const total = Object.values(s.attrs).reduce((a, b) => a + b, 0);
+  const outStatus = !s.outing || s.outing.claimed ? '在家'
+    : (Date.now() >= s.outing.returnAt ? '刚回来' : '出门中');
+  el.innerHTML = `
+    昵称 <b>${s.nickname}</b>　形态 <b>${form ? form.name : s.currentForm}</b>　
+    好感 <b>${s.affinity}</b>（${st.name}）　总属性 <b>${total}</b><br>
+    <span class="tag">图鉴 ${s.unlockedForms.length}/${ALL_FORMS.length}</span>
+    <span class="tag">纪念品 ${s.souvenirs.length}/6</span>
+    <span class="tag">朋友 ${s.metNpcs.length}/5</span>
+    <span class="tag">${outStatus}</span>
+    <span class="tag">${s.demoMode ? '演示模式' : '正常节奏'}</span>`;
+}
+
+function renderForms() {
+  const grid = document.getElementById('formGrid');
+  grid.innerHTML = ALL_FORMS.map((f) => `
+    <div class="card">
+      <h2>${f.name}</h2>
+      <p>${f.persona}</p>
+      <button class="ghost" onclick="setForm('${f.id}')">变成它</button>
+    </div>`).join('');
+}
+
+renderForms();
+renderState();
+</script>
+</body>
+</html>

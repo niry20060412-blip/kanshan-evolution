@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#f7f3ec">
+<title>看山进化 · 你的知识室友</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦊</text></svg>">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ========== 领养页 ========== -->
+<section id="adopt-screen" class="adopt-screen" aria-label="领养看山">
+  <div class="adopt-card">
+    <div class="adopt-pet" id="adopt-pet"></div>
+    <h1 class="adopt-title">有一只看山，想跟你合租</h1>
+    <p class="adopt-sub">它会自己出门、交朋友、捡东西回来，
+      然后跟你讲一整天。<br>先给它起个名字吧。</p>
+    <label class="field">
+      <span class="field-label">你想让它怎么称呼你</span>
+      <input id="nickname-input" type="text" maxlength="12" placeholder="比如：阿远"
+        autocomplete="off" aria-describedby="nickname-hint">
+    </label>
+    <p id="nickname-hint" class="field-hint">这个称呼会贯穿它之后所有的话。</p>
+    <button id="adopt-btn" class="btn btn-primary btn-lg">带它回家</button>
+  </div>
+</section>
+
+<!-- ========== 主容器 ========== -->
+<div id="app" class="app" hidden>
+
+  <!-- ---------- 宠物主页 ---------- -->
+  <main id="page-home" class="page page-home is-active" aria-label="宠物主页">
+    <header class="home-top">
+      <div class="home-id">
+        <h1 class="pet-name" id="home-pet-name">看山</h1>
+        <span class="form-tag" id="home-form-tag">初生看山</span>
+      </div>
+      <div class="home-actions">
+        <button id="demo-toggle" class="chip-btn" aria-pressed="false"
+          title="演示模式：外出缩短为 10 分钟">演示</button>
+        <button id="motion-toggle" class="chip-btn" aria-pressed="false"
+          title="减少动效">动效</button>
+        <button id="settings-toggle" class="chip-btn" title="功能开关">设置</button>
+      </div>
+    </header>
+
+    <!-- 功能开关面板（需求 3：不喜欢的功能可关闭） -->
+    <div class="settings-panel" id="settings-panel" hidden>
+      <h2 class="settings-title">功能开关</h2>
+      <label class="switch-row">
+        <span>
+          <b>听完见闻后聊两句</b>
+          <em>关掉后只保留「回应」按钮</em>
+        </span>
+        <input type="checkbox" id="sw-outingChat" checked>
+      </label>
+      <label class="switch-row">
+        <span>
+          <b>护眼提醒</b>
+          <em>连续看太久时它会抖一下提醒你</em>
+        </span>
+        <input type="checkbox" id="sw-eyeCare" checked>
+      </label>
+      <label class="switch-row">
+        <span>
+          <b>它出门时可以联系</b>
+          <em>外出期间出现「打电话」入口</em>
+        </span>
+        <input type="checkbox" id="sw-callWhenAway" checked>
+      </label>
+      <label class="switch-row">
+        <span>
+          <b>桌宠悬浮窗</b>
+          <em>窄窗贴边显示，像桌面宠物</em>
+        </span>
+        <input type="checkbox" id="sw-floatingMode">
+      </label>
+    </div>
+
+    <!-- 状态条 -->
+    <div class="status-line">
+      <span class="status-dot" id="status-dot" data-status="home"></span>
+      <span id="status-text">在家</span>
+      <span class="status-sep">·</span>
+      <span id="stage-text">陌生</span>
+      <span class="status-sep">·</span>
+      <span id="address-text">那个人类</span>
+    </div>
+
+    <!-- 房间 -->
+    <div class="room" id="room" data-empty="false">
+      <div class="room-shelf" aria-hidden="true"></div>
+
+      <!-- 空房间场景：门、留着的灯、它坐过的垫子 -->
+      <div class="room-scene" id="room-scene" aria-hidden="true">
+        <div class="scene-door"></div>
+        <div class="scene-glow"></div>
+        <div class="scene-lamp"></div>
+        <div class="scene-cushion"></div>
+      </div>
+
+      <!-- 空房间时的门口便签 -->
+      <div class="door-note" id="door-note" hidden>
+        <div class="note-paper">
+          <span class="note-pin" aria-hidden="true"></span>
+          <p class="note-text" id="note-text">去看看科技区最近在吵什么</p>
+          <p class="note-meta" id="note-countdown">还要一会儿</p>
+        </div>
+        <p class="room-empty-hint">屋里空了。它把灯留着。</p>
+      </div>
+
+      <!-- 看山本体 -->
+      <button class="pet-stage" id="pet-stage" aria-label="点击看山，打开它的面板">
+        <div class="pet-shadow" aria-hidden="true"></div>
+        <div class="pet-svg-wrap" id="pet-svg"></div>
+      </button>
+
+      <!-- 思绪泡泡容器 -->
+      <div class="bubble-layer" id="bubble-layer" aria-hidden="true"></div>
+
+      <!-- 即时反应气泡 -->
+      <div class="say-bubble" id="say-bubble" hidden role="status" aria-live="polite"></div>
+
+      <!-- NPC 登门 -->
+      <button class="npc-corner" id="npc-corner" hidden aria-label="有朋友来做客">
+        <span class="npc-icon" id="npc-icon">🐢</span>
+        <span class="npc-name" id="npc-name">哲学乌龟</span>
+      </button>
+    </div>
+
+    <!-- 双轴面板 -->
+    <section class="axes" aria-label="属性与好感度">
+      <div class="axis-card">
+        <div class="axis-head">
+          <h2>好感度</h2>
+          <span class="axis-value"><span id="affinity-value">0</span>
+            <em id="affinity-next">/ 100</em></span>
+        </div>
+        <div class="meter meter-affinity">
+          <div class="meter-fill" id="affinity-fill" style="width:0%"
+            role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div>
+        </div>
+        <p class="axis-note" id="affinity-note">陌生 · 它还在观察你</p>
+      </div>
+
+      <div class="axis-card">
+        <div class="axis-head">
+          <h2>六项属性</h2>
+          <span class="axis-value" id="attr-total">总计 0</span>
+        </div>
+        <ul class="attr-list" id="attr-list"></ul>
+      </div>
+    </section>
+
+    <!-- 外出控制 -->
+    <div class="outing-bar" id="outing-bar">
+      <button id="go-out-btn" class="btn btn-ghost" disabled>让它出门（需好感度 100）</button>
+      <button id="call-btn" class="btn btn-ghost" hidden>📞 给它打个电话</button>
+    </div>
+  </main>
+
+  <!-- ---------- 通话浮层（需求 5：外出时也能交流） ---------- -->
+  <div class="call-overlay" id="call-overlay" hidden role="dialog"
+    aria-modal="true" aria-labelledby="call-title">
+    <div class="call-card">
+      <div class="call-head">
+        <div class="call-avatar" id="call-avatar" aria-hidden="true"></div>
+        <div>
+          <h2 class="call-title" id="call-title">正在通话…</h2>
+          <p class="call-sub" id="call-sub">它在外面，信号有点飘</p>
+        </div>
+        <span class="call-timer" id="call-timer">00:00</span>
+      </div>
+      <div class="call-log" id="call-log" role="log" aria-live="polite"></div>
+      <form class="call-form" id="call-form">
+        <input id="call-text" type="text" maxlength="200" autocomplete="off"
+          placeholder="说点什么…">
+        <button type="submit" class="btn btn-primary" id="call-send">说</button>
+      </form>
+      <button class="call-hangup" id="call-hangup">挂断</button>
+    </div>
+  </div>
+
+  <!-- ---------- 护眼提醒（需求 5：看久了抖动提醒） ---------- -->
+  <div class="eyecare-toast" id="eyecare-toast" hidden role="alert">
+    <span class="eyecare-icon" aria-hidden="true">👀</span>
+    <div>
+      <b id="eyecare-title">你已经看了 20 分钟了</b>
+      <p id="eyecare-body">抬头看看远处，我在这儿等你。</p>
+    </div>
+    <button class="eyecare-close" id="eyecare-close" aria-label="知道了">知道了</button>
+  </div>
+
+  <!-- ---------- 领域选择页 ---------- -->
+  <main id="page-domains" class="page" aria-label="选择知识领域" hidden>
+    <header class="page-head">
+      <h1>今天想喂它点什么？</h1>
+      <p>不同领域会长出不同的看山。</p>
+    </header>
+    <div class="domain-grid" id="domain-grid"></div>
+  </main>
+
+  <!-- ---------- 阅读页 ---------- -->
+  <main id="page-read" class="page" aria-label="阅读回答" hidden>
+    <header class="page-head read-head">
+      <button class="back-btn" id="read-back" aria-label="返回领域选择">← 换一个领域</button>
+      <span class="domain-chip" id="read-domain-chip">科技</span>
+    </header>
+
+    <article class="answer-card" id="answer-card">
+      <div class="answer-loading" id="answer-loading">
+        <span class="spinner" aria-hidden="true"></span>
+        <p>正在找一篇值得读的……</p>
+      </div>
+      <div class="answer-body" id="answer-body" hidden>
+        <h2 class="answer-title" id="answer-title"></h2>
+        <div class="answer-meta">
+          <span class="answer-author" id="answer-author"></span>
+          <span class="answer-votes" id="answer-votes"></span>
+          <span class="answer-source" id="answer-source"></span>
+        </div>
+        <p class="answer-excerpt" id="answer-excerpt"></p>
+      </div>
+    </article>
+
+    <div class="read-actions">
+      <p class="read-reaction" id="read-reaction" hidden></p>
+      <button id="read-done" class="btn btn-primary btn-lg" disabled>读完了</button>
+      <p class="read-hint">属性 +10 · 好感度 +3</p>
+    </div>
+  </main>
+
+  <!-- ---------- 图鉴页 ---------- -->
+  <main id="page-gallery" class="page" aria-label="图鉴" hidden>
+    <header class="page-head">
+      <h1>图鉴</h1>
+      <p><span id="gallery-count">1 / 19</span> · 它变过的样子，和捡回来的东西</p>
+    </header>
+
+    <div class="tabs" role="tablist" aria-label="图鉴分栏">
+      <button class="tab is-active" role="tab" aria-selected="true" data-gtab="forms">形态</button>
+      <button class="tab" role="tab" aria-selected="false" data-gtab="cabinet">柜子</button>
+    </div>
+
+    <div id="gallery-forms" class="gallery-grid" role="tabpanel"></div>
+    <div id="gallery-cabinet" class="cabinet" role="tabpanel" hidden></div>
+  </main>
+
+</div>
+
+<!-- ========== 看山面板（四 Tab） ========== -->
+<div id="panel-backdrop" class="panel-backdrop" hidden></div>
+<aside id="pet-panel" class="pet-panel" hidden aria-label="看山面板" role="dialog" aria-modal="true">
+  <header class="panel-head">
+    <div class="panel-title">
+      <span class="panel-avatar" id="panel-avatar"></span>
+      <div>
+        <h2 id="panel-name">看山</h2>
+        <p id="panel-status">在家 · 陌生</p>
+      </div>
+    </div>
+    <button id="panel-close" class="icon-btn" aria-label="关闭面板">✕</button>
+  </header>
+
+  <nav class="tabs panel-tabs" role="tablist">
+    <button class="tab is-active" role="tab" aria-selected="true" data-ptab="chat">聊天</button>
+    <button class="tab" role="tab" aria-selected="false" data-ptab="outing">
+      见闻<span class="red-dot" id="outing-dot" hidden></span>
+    </button>
+    <button class="tab" role="tab" aria-selected="false" data-ptab="friends">朋友</button>
+    <button class="tab" role="tab" aria-selected="false" data-ptab="memory">回忆</button>
+  </nav>
+
+  <div class="panel-body">
+    <!-- 聊天 -->
+    <section id="ptab-chat" class="ptab is-active" role="tabpanel">
+      <div class="chat-log" id="chat-log" aria-live="polite"></div>
+      <form class="chat-input" id="chat-form">
+        <input id="chat-text" type="text" maxlength="200" placeholder="跟它说点什么……"
+          autocomplete="off" aria-label="输入消息">
+        <button type="submit" class="btn btn-primary" id="chat-send">发送</button>
+      </form>
+      <p class="chat-hint" id="chat-hint">对话 +2 好感度 · 今日剩余 <span id="chat-left">20</span> 轮</p>
+    </section>
+
+    <!-- 见闻 -->
+    <section id="ptab-outing" class="ptab" role="tabpanel" hidden>
+      <div id="outing-list" class="outing-list"></div>
+    </section>
+
+    <!-- 朋友 -->
+    <section id="ptab-friends" class="ptab" role="tabpanel" hidden>
+      <p class="ptab-intro">它自己的朋友。你只是听说。</p>
+      <div id="friends-list" class="friends-list"></div>
+    </section>
+
+    <!-- 回忆 -->
+    <section id="ptab-memory" class="ptab" role="tabpanel" hidden>
+      <div id="memory-body" class="memory-body"></div>
+    </section>
+  </div>
+</aside>
+
+<!-- ========== 底部导航 ========== -->
+<nav id="tabbar" class="tabbar" hidden aria-label="主导航">
+  <button class="tabbar-btn is-active" data-page="home">
+    <span class="tabbar-icon">🏠</span><span>家</span>
+  </button>
+  <button class="tabbar-btn" data-page="domains">
+    <span class="tabbar-icon">📖</span><span>喂养</span>
+  </button>
+  <button class="tabbar-btn" data-page="gallery">
+    <span class="tabbar-icon">🗃️</span><span>图鉴</span>
+  </button>
+</nav>
+
+<!-- ========== 进化动画层 ========== -->
+<div id="evolve-overlay" class="evolve-overlay" hidden role="status" aria-live="assertive">
+  <div class="evolve-inner">
+    <div class="evolve-glow" aria-hidden="true"></div>
+    <div class="evolve-pet" id="evolve-pet"></div>
+    <p class="evolve-label">它变了</p>
+    <h2 class="evolve-name" id="evolve-name">机械工程师看山</h2>
+    <p class="evolve-motto" id="evolve-motto"></p>
+    <p class="evolve-unlock" id="evolve-unlock">已收入图鉴</p>
+    <button id="evolve-close" class="btn btn-primary">知道了</button>
+  </div>
+</div>
+
+<!-- 戳泡泡小游戏 -->
+<div id="bubble-game" class="bubble-game" hidden role="dialog" aria-label="戳泡泡">
+  <div class="game-head">
+    <span id="game-timer">15</span>s
+    <span class="game-score">戳中 <span id="game-score">0</span></span>
+    <button id="game-quit" class="icon-btn" aria-label="跳过">✕</button>
+  </div>
+  <div class="game-field" id="game-field"></div>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="toast" hidden role="status" aria-live="polite"></div>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>

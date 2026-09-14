@@ -1,0 +1,17 @@
+{
+  "name": "看山 · 桌宠",
+  "short_name": "看山",
+  "description": "停在屏幕边上的看山，点一下就进主界面。",
+  "start_url": "/pet.html",
+  "display": "standalone",
+  "background_color": "#00000000",
+  "theme_color": "#f7f3ec",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "assets/kanshan-96.png", "sizes": "96x139", "type": "image/png", "purpose": "any" },
+    { "src": "assets/kanshan-192.png", "sizes": "192x277", "type": "image/png", "purpose": "any" },
+    { "src": "assets/kanshan-288.png", "sizes": "288x416", "type": "image/png", "purpose": "any" }
+  ],
+  "lang": "zh-CN",
+  "scope": "/"
+}

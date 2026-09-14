@@ -1555,3 +1555,11 @@ body.is-floating .install-banner { animation: none; }
   margin: 0 0 16px;
   text-align: center;
 }
+
+/* 桌宠模式入口：<a> 复用 chip-btn 样式需补齐对齐与去下划线 */
+a.chip-btn {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+  line-height: 1;
+}

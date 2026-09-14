@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#00000000">
+<title>看山 · 桌宠</title>
+<link rel="icon" href="assets/kanshan-96.png">
+<link rel="manifest" href="manifest-pet.json">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="看山">
+<link rel="apple-touch-icon" href="assets/kanshan-192.png">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: transparent;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: none;
+}
+
+/* 贴边停靠的容器：始终在最上层，不被内容遮挡 */
+#dock {
+  position: fixed;
+  right: 0;
+  bottom: 22vh;
+  z-index: 2147483647;
+  width: 108px;
+  height: 155px;
+  cursor: grab;
+  /* 拖动时不触发系统手势 */
+  touch-action: none;
+  transition: transform .34s cubic-bezier(.34, 1.4, .5, 1), opacity .3s;
+  will-change: transform;
+}
+#dock.is-dragging {
+  cursor: grabbing;
+  transition: none;
+}
+
+/* 形象本体：只有它，没有任何其他 UI */
+#pet {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
+  pointer-events: none;
+  filter: drop-shadow(0 6px 14px rgba(60, 48, 38, .26));
+  transform-origin: 50% 88%;
+  animation: idle 4.2s ease-in-out infinite;
+}
+
+/* 待机：极轻微的呼吸起伏 */
+@keyframes idle {
+  0%, 100% { transform: scaleY(1) translateY(0); }
+  50%      { transform: scaleY(.978) translateY(3px); }
+}
+
+/* 鼠标/手指靠近：抬头、放大一点 */
+#dock.is-hover #pet {
+  animation: perk .5s ease forwards;
+}
+@keyframes perk {
+  0%   { transform: scale(1) rotate(0); }
+  55%  { transform: scale(1.09) rotate(-3.5deg); }
+  100% { transform: scale(1.06) rotate(-2deg); }
+}
+
+/* 被点：缩一下再弹回 */
+#dock.is-poke #pet {
+  animation: poke .42s cubic-bezier(.3, 1.6, .5, 1);
+}
+@keyframes poke {
+  0%   { transform: scale(1.06) rotate(-2deg); }
+  35%  { transform: scale(.9) translateY(6px) rotate(2deg); }
+  100% { transform: scale(1) rotate(0); }
+}
+
+/* 跟随指针方向的轻微倾斜（JS 设置 --lean） */
+#dock.is-hover #pet { rotate: var(--lean, 0deg); }
+
+/* 长时间不动：打盹，轻轻下沉 */
+#dock.is-sleepy #pet {
+  animation: doze 5.6s ease-in-out infinite;
+  opacity: .82;
+}
+@keyframes doze {
+  0%, 100% { transform: scaleY(1) translateY(2px); }
+  50%      { transform: scaleY(.95) translateY(7px); }
+}
+
+/* 停靠在左边时水平镜像，让它始终"朝向"屏幕内侧 */
+#dock.dock-left #pet { scale: -1 1; }
+
+/* 睡意气泡 */
+#zzz {
+  position: absolute;
+  top: 6px;
+  right: 10px;
+  font-size: 15px;
+  color: #8a8fa8;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .5s;
+}
+#dock.is-sleepy #zzz {
+  opacity: .85;
+  animation: zzz 3.4s ease-in-out infinite;
+}
+@keyframes zzz {
+  0%   { transform: translateY(0) scale(.85); opacity: 0; }
+  30%  { opacity: .9; }
+  100% { transform: translateY(-20px) scale(1.15); opacity: 0; }
+}
+
+/* 一句话反应气泡：只在互动时短暂出现 */
+#say {
+  position: absolute;
+  bottom: 100%;
+  right: 4px;
+  margin-bottom: 6px;
+  max-width: 190px;
+  padding: 8px 12px;
+  background: #fffdf8;
+  color: #3d3630;
+  border: 1.5px solid #e8e0d4;
+  border-radius: 13px 13px 4px 13px;
+  font: 12.5px/1.55 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+  box-shadow: 0 6px 18px rgba(60, 48, 38, .18);
+  opacity: 0;
+  transform: translateY(6px) scale(.94);
+  transition: opacity .26s, transform .26s;
+  pointer-events: none;
+  white-space: normal;
+  word-break: break-word;
+}
+#say.show {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+#dock.dock-left #say {
+  right: auto;
+  left: 4px;
+  border-radius: 13px 13px 13px 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #pet, #dock.is-sleepy #pet { animation: none !important; }
+}
+</style>
+</head>
+<body>
+
+<div id="dock" role="button" tabindex="0" aria-label="看山，点击打开主界面">
+  <span id="zzz" aria-hidden="true">z</span>
+  <div id="say" role="status" aria-live="polite"></div>
+  <img id="pet" src="assets/kanshan-288.png" alt="看山" draggable="false">
+</div>
+
+<script src="js/pet-window.js"></script>
+</body>
+</html>

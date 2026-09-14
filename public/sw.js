@@ -2,13 +2,15 @@
  * Service Worker — 看山进化
  * 功能：离线可用（缓存优先），支持 PWA 安装到桌面/手机
  */
-const CACHE = 'kanshan-v1';
+const CACHE = 'kanshan-v2';
 
 const PRECACHE = [
   '/',
   '/index.html',
+  '/pet.html',
   '/css/style.css',
   '/js/main.js',
+  '/js/pet-window.js',
   '/js/storage.js',
   '/js/game.js',
   '/js/api.js',
@@ -20,7 +22,12 @@ const PRECACHE = [
   '/js/config/souvenirs.js',
   '/js/config/npc.js',
   '/js/config/corpus.js',
-  '/manifest.json'
+  '/assets/kanshan-96.png',
+  '/assets/kanshan-192.png',
+  '/assets/kanshan-288.png',
+  '/assets/kanshan-full.png',
+  '/manifest.json',
+  '/manifest-pet.json'
 ];
 
 self.addEventListener('install', (e) => {

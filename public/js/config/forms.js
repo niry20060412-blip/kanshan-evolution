@@ -75,7 +75,7 @@ export const FORMS = [
     motto: '再五分钟，我就去睡。',
     voiceStyle: ['累。', '再五分钟我就去睡。', '今天会开到很晚。', '先别说话，让我缓缓。'],
     condition: '职场 ≥ 50 且领先',
-    palette: { body: '#eceff2', accent: '#5b8c7e', glow: '#c6d8d1' },
+    palette: { body: '#eceff2', accent: '#4a7f96', glow: '#c4d9e2' },
     parts: ['plaid', 'thermos', 'eyebags']
   },
   {
@@ -239,7 +239,7 @@ export const FORMS = [
     motto: '这个事嘛，要辩证地看。',
     voiceStyle: ['这个事嘛，要辩证地看。', '总的来说。', '我谈三点。', '同志，坐下说。'],
     condition: '历史 + 职场 双高',
-    palette: { body: '#eef0ea', accent: '#7c8a6b', glow: '#d2dac4' },
+    palette: { body: '#eef0ea', accent: '#2f4a28', glow: '#bccdaa' },
     parts: ['zhongshan', 'enamelcup', 'newspaper']
   },
   {

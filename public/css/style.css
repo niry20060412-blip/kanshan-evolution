@@ -1563,3 +1563,62 @@ a.chip-btn {
   text-decoration: none;
   line-height: 1;
 }
+
+/* ================================================================
+   照片版形象：官方渲染图 + 差异化道具层
+   ================================================================ */
+.ks-photo {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.ks-photo > img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  z-index: 2;
+  -webkit-user-drag: none;
+  user-select: none;
+}
+/* 道具层与照片共用同一坐标系，绝对对齐 */
+.ks-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+.ks-layer-under { z-index: 1; }
+.ks-layer-over  { z-index: 3; }
+
+/* 呼吸：整体轻微起伏，模拟原 SVG 的 ks-breathe */
+.ks-photo.ks-breathe {
+  animation: ks-photo-breathe 4.4s ease-in-out infinite;
+  transform-origin: 50% 92%;
+}
+@keyframes ks-photo-breathe {
+  0%, 100% { transform: scaleY(1) translateY(0); }
+  50%      { transform: scaleY(.985) translateY(2px); }
+}
+.reduced-motion .ks-photo.ks-breathe { animation: none; }
+
+/* 图鉴未解锁：压成剪影 */
+.ks-photo-locked > img {
+  filter: grayscale(1) brightness(.62) opacity(.42);
+}
+.ks-lock {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: grid;
+  place-items: center;
+  font-size: 30px;
+  font-weight: 700;
+  color: #8d97a3;
+  opacity: .85;
+}

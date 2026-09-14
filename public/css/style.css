@@ -1422,3 +1422,136 @@ body.is-shaking { animation: shake .6s ease-in-out; }
     grid-template-columns: repeat(5, 1fr);
   }
 }
+
+/* ================================================================
+   需求 1/3 新增：换一篇按钮 · 桌宠安装横幅 · iOS 指引
+   ================================================================ */
+
+/* ---- 阅读页「换一篇」---- */
+#read-next {
+  margin-top: 8px;
+}
+#read-next.is-primary-hint {
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* ---- 桌宠安装横幅 ---- */
+.install-banner {
+  position: fixed;
+  left: 50%;
+  bottom: calc(var(--tabbar-h) + 14px);
+  transform: translateX(-50%);
+  z-index: 700;
+  width: calc(100% - 32px);
+  max-width: 420px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--card);
+  border: 1.5px solid var(--accent);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  animation: install-in .34s ease-out;
+}
+@keyframes install-in {
+  from { opacity: 0; transform: translateX(-50%) translateY(16px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+.install-pet {
+  width: 46px;
+  height: 46px;
+  flex-shrink: 0;
+}
+.install-pet svg { width: 100%; height: 100%; }
+.install-text { flex: 1; min-width: 0; }
+.install-text b {
+  display: block;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 2px;
+}
+.install-text p {
+  margin: 0;
+  font-size: 12px;
+  color: var(--ink-faint);
+  line-height: 1.5;
+}
+.install-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.install-actions .btn-sm {
+  padding: 7px 16px;
+  font-size: 12.5px;
+}
+.install-later {
+  background: none;
+  border: none;
+  color: var(--ink-faint);
+  font-size: 11.5px;
+  cursor: pointer;
+  font-family: inherit;
+  padding: 2px;
+}
+.install-later:hover { color: var(--ink-soft); }
+
+/* 悬浮窗模式下横幅跟随窗体，避免飘到屏幕中央 */
+body.is-floating .install-banner {
+  left: auto;
+  right: 24px;
+  transform: none;
+  max-width: 320px;
+}
+body.is-floating .install-banner { animation: none; }
+
+/* ---- iOS 手动安装指引 ---- */
+.ios-guide {
+  position: fixed;
+  inset: 0;
+  z-index: 800;
+  background: rgba(40, 36, 32, .58);
+  backdrop-filter: blur(5px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.ios-guide-card {
+  width: 100%;
+  max-width: 330px;
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 22px 20px 18px;
+  box-shadow: var(--shadow-lg);
+  text-align: left;
+}
+.ios-guide-card h2 {
+  font-size: 16px;
+  margin: 0 0 14px;
+  text-align: center;
+}
+.ios-steps {
+  margin: 0 0 14px;
+  padding-left: 20px;
+  font-size: 13.5px;
+  line-height: 1.9;
+  color: var(--ink-soft);
+}
+.ios-steps b { color: var(--accent); }
+.ios-icon {
+  display: inline-block;
+  transform: translateY(1px);
+  opacity: .7;
+}
+.ios-note {
+  font-size: 12px;
+  color: var(--ink-faint);
+  margin: 0 0 16px;
+  text-align: center;
+}

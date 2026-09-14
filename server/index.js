@@ -277,10 +277,16 @@ function serveStatic(req, res, pathname) {
       return;
     }
     const ext = path.extname(filePath).toLowerCase();
-    res.writeHead(200, {
+    const headers = {
       'Content-Type': MIME[ext] || 'application/octet-stream',
       'Cache-Control': 'no-cache'
-    });
+    };
+    // Service Worker 必须实时更新，且允许控制整个站点作用域
+    if (safe === 'sw.js') {
+      headers['Cache-Control'] = 'no-store';
+      headers['Service-Worker-Allowed'] = '/';
+    }
+    res.writeHead(200, headers);
     res.end(data);
   });
 }

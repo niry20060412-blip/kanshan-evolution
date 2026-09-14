@@ -1,0 +1,22 @@
+{
+  "name": "看山进化",
+  "short_name": "看山",
+  "description": "用知乎知识喂养刘看山，它会出门、交朋友、带见闻回家。",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f7f3ec",
+  "theme_color": "#e08a5c",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦊</text></svg>",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["games", "lifestyle"],
+  "lang": "zh-CN",
+  "dir": "ltr",
+  "scope": "/"
+}

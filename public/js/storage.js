@@ -48,6 +48,9 @@ export const DEFAULT_STATE = {
 
   eyeCare: { sessionStart: null, lastRemindAt: null },
 
+  /** 桌宠安装横幅是否已被用户关闭（需求 3） */
+  installDismissed: false,
+
   /** 开关默认值迁移标记，避免对已迁移存档重复纠正 */
   featuresMigratedV2: true,
 

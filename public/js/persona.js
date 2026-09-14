@@ -25,12 +25,19 @@ const BASE_PERSONA = [
 /** 第二块：当前形态 */
 function formBlock(state) {
   const form = FORM_MAP[state.currentForm] || FORM_MAP.origin;
-  return [
+  const lines = [
     `【你现在的形态】${form.name}`,
     `形态性格：${form.persona}`,
-    `你的口头禅式表达：「${form.motto}」`,
-    '说话方式必须体现这个形态的性格差异。'
-  ].join('\n');
+    `你的口头禅式表达：「${form.motto}」`
+  ];
+  if (form.voiceStyle && form.voiceStyle.length) {
+    lines.push(`这个形态的典型语气示例：${form.voiceStyle.map((v) => `「${v}」`).join('、')}`);
+  }
+  lines.push(
+    '说话方式必须体现这个形态的性格差异：用词、语速、句子长短、关注点都要不同。',
+    '换了形态就等于换了一个人格，不要用别的形态的口吻说话。'
+  );
+  return lines.join('\n');
 }
 
 /** 第三块：近期经历 */
@@ -140,10 +147,11 @@ export function maybeDistracted() {
   return Math.random() < DISTRACT_CHANCE ? pick(DISTRACTED_LINES) : null;
 }
 
-/** API 不可用时的本地回复，按阶段分层。
+/** API 不可用时的本地回复，按阶段分层 + 按当前形态调整口吻。
  *  outingTopic：若正在就某条见闻深聊，优先给出扣题的回应。 */
 export function localReply(state, userText, outingTopic = null) {
   const stage = currentStage(state);
+  const form = FORM_MAP[state.currentForm] || FORM_MAP.origin;
 
   // 正在聊某条见闻：先给扣题回应，避免答非所问
   if (outingTopic) {
@@ -155,6 +163,10 @@ export function localReply(state, userText, outingTopic = null) {
       '我讲的时候其实没想明白，被你一问，倒是清楚了点。'
     ];
     let reply = pick(onTopic);
+    // 形态语气：让同一句话在不同形态下听起来是不同的“人”
+    if (form.voiceStyle && Math.random() < 0.55) {
+      reply += ' ' + pick(form.voiceStyle);
+    }
     if (outingTopic.npc) {
       reply += ` 下次碰到${outingTopic.npc.name}，我替你问问它。`;
     }
@@ -163,6 +175,13 @@ export function localReply(state, userText, outingTopic = null) {
 
   const pool = DIALOGUE_CORPUS[stage.key] || DIALOGUE_CORPUS.stranger;
   let reply = pick(pool);
+
+  // 形态语气：19 种形态各有口头禅，避免所有形态说一样的话
+  if (form.voiceStyle && Math.random() < 0.6) {
+    reply = Math.random() < 0.5
+      ? pick(form.voiceStyle) + ' ' + reply
+      : reply + ' ' + pick(form.voiceStyle);
+  }
 
   // 深夜追加一句
   if (isNightTime() && Math.random() < 0.5) {

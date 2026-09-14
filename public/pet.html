@@ -54,13 +54,7 @@ html, body {
   pointer-events: none;
   filter: drop-shadow(0 6px 14px rgba(60, 48, 38, .26));
   transform-origin: 50% 88%;
-  animation: idle 4.2s ease-in-out infinite;
-}
-
-/* 待机：极轻微的呼吸起伏 */
-@keyframes idle {
-  0%, 100% { transform: scaleY(1) translateY(0); }
-  50%      { transform: scaleY(.978) translateY(3px); }
+  transition: transform .3s ease;
 }
 
 /* 鼠标/手指靠近：抬头、放大一点 */
@@ -86,14 +80,9 @@ html, body {
 /* 跟随指针方向的轻微倾斜（JS 设置 --lean） */
 #dock.is-hover #pet { rotate: var(--lean, 0deg); }
 
-/* 长时间不动：打盹，轻轻下沉 */
+/* 长时间不动：打盹（动作由 GIF 表现，这里只压一点透明度） */
 #dock.is-sleepy #pet {
-  animation: doze 5.6s ease-in-out infinite;
-  opacity: .82;
-}
-@keyframes doze {
-  0%, 100% { transform: scaleY(1) translateY(2px); }
-  50%      { transform: scaleY(.95) translateY(7px); }
+  opacity: .9;
 }
 
 /* 停靠在左边时水平镜像，让它始终"朝向"屏幕内侧 */

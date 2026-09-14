@@ -21,6 +21,39 @@
   const SLEEP_AFTER = 45000;   // 无互动多久进入打盹
   const DRAG_SLOP = 6;         // 超过这个位移才算拖动，否则算点击
 
+  // ---- 动画素材：官方渲染的透明 GIF ----
+  const ANIM = {
+    idle:  'assets/kanshan-288.png',   // 静止：站立
+    hello: 'assets/anim-hello.gif',    // 打招呼
+    work:  'assets/anim-work.gif',     // 用电脑
+    play:  'assets/anim-play.gif',     // 运球
+    doze:  'assets/anim-doze.gif'      // 瞌睡
+  };
+  // 一次性动作的时长，播完回到静止
+  const ANIM_MS = { hello: 4000, play: 4000, work: 6000 };
+
+  let animTimer = null;
+  let currentAnim = 'idle';
+
+  /**
+   * 切换动作。
+   * loop=true 的动作会一直播（如瞌睡），否则播完自动回 idle。
+   * GIF 每次赋值 src 都会从第一帧重新播放，这里加时间戳保证重播。
+   */
+  function playAnim(name, loop) {
+    if (!ANIM[name]) return;
+    clearTimeout(animTimer);
+    currentAnim = name;
+    pet.src = name === 'idle'
+      ? ANIM.idle
+      : ANIM[name] + '?t=' + Date.now();
+    if (!loop && ANIM_MS[name]) {
+      animTimer = setTimeout(() => {
+        if (currentAnim === name) playAnim('idle');
+      }, ANIM_MS[name]);
+    }
+  }
+
   // ---- 位置状态：以窗口左上角为基准 ----
   const saved = readPos();
   let posX = saved ? saved.x : window.innerWidth - DOCK_W - MARGIN;
@@ -121,9 +154,13 @@
     if (dock.classList.contains('is-sleepy')) {
       dock.classList.remove('is-sleepy');
       speak(pick(LINES_WAKE));
+      playAnim('hello');          // 睡醒先打个招呼
     }
     clearTimeout(sleepTimer);
-    sleepTimer = setTimeout(() => dock.classList.add('is-sleepy'), SLEEP_AFTER);
+    sleepTimer = setTimeout(() => {
+      dock.classList.add('is-sleepy');
+      playAnim('doze', true);     // 瞌睡循环播放
+    }, SLEEP_AFTER);
   }
 
   // ---------------------------------------------------------------- 指针反应
@@ -142,6 +179,7 @@
     hoverTimer = setTimeout(() => {
       if (dock.classList.contains('is-hover') && !dragging) {
         speak(pick(LINES_HOVER));
+        if (currentAnim === 'idle') playAnim('hello');
       }
     }, 600);
   });
@@ -155,6 +193,7 @@
     // 快速划过（短时间内多次移动后离开）→ 另一种反应
     if (moveCount > 4 && Date.now() - lastMoveAt < 400) {
       speak(pick(LINES_PASS), 1600);
+      playAnim('play');
     }
     moveCount = 0;
   });
@@ -238,6 +277,7 @@
     dock.classList.remove('is-sleepy');
     dock.classList.add('is-poke');
     speak(pick(LINES_POKE), 1200);
+    playAnim('hello');
     setTimeout(() => dock.classList.remove('is-poke'), 430);
 
     // 留一点时间让动画和气泡被看到，再跳转
@@ -262,14 +302,15 @@
     snapToEdge();
   });
 
-  // 高分屏用更大的图，避免发虚
+  // 高分屏用更大的静止图，避免发虚（动画 GIF 本身已是 320px）
   if (window.devicePixelRatio > 1.5) {
-    pet.src = 'assets/kanshan-full.png';
+    ANIM.idle = 'assets/kanshan-full.png';
+    if (currentAnim === 'idle') pet.src = ANIM.idle;
   }
 
   apply();
   resetSleep();
 
   // 打个招呼
-  setTimeout(() => speak('我在这儿。', 2000), 700);
+  setTimeout(() => { speak('我在这儿。', 2000); playAnim('hello'); }, 700);
 })();

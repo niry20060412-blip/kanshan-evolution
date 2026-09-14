@@ -132,10 +132,19 @@ function renderHome() {
     $('note-countdown').textContent = fmtRemain(outingRemainMs(state));
   }
 
-  // 形象
+  // 形象：按当前情境选择动作
+  //   刚回来 → 打招呼 / 深夜 → 瞌睡 / 今天读过书 → 用电脑 / 其余静止
+  let anim = null;
+  if (!state.reducedMotion) {
+    if (status === 'back') anim = 'hello';
+    else if (isNightTime()) anim = 'doze';
+    else if ((state.recentAnswers || []).length
+             && Date.now() - (state.recentAnswers[0].at || 0) < 6 * 60 * 1000) anim = 'work';
+  }
   $('pet-svg').innerHTML = renderPet(state.currentForm, {
     reducedMotion: state.reducedMotion,
-    bondColor: nicknameColor()
+    bondColor: nicknameColor(),
+    anim
   });
 
   // 好感度
@@ -913,6 +922,12 @@ function endBubbleGame(skipped) {
   state.lastInteractAt = Date.now();
   persist();
   renderHome();
+  // 玩完球的余兴
+  const stageEl = $('pet-svg').querySelector('img');
+  if (stageEl && !state.reducedMotion) {
+    stageEl.src = 'assets/anim-play.gif?t=' + Date.now();
+    setTimeout(() => renderHome(), 4000);
+  }
 
   if (res.capped) {
     toast(`戳中 ${score} 个 · 今天的好感度已经攒满啦`);

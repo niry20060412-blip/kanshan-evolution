@@ -28,6 +28,14 @@ const PHOTO = {
   lg: 'assets/kanshan-full.png'
 };
 
+/** 动作素材：官方渲染的透明 GIF，用于主页的情境表现 */
+export const ANIM = {
+  hello: 'assets/anim-hello.gif',
+  work:  'assets/anim-work.gif',
+  play:  'assets/anim-play.gif',
+  doze:  'assets/anim-doze.gif'
+};
+
 /** 道具层画布：与照片同比例 */
 const VB = { w: 100, h: 143.7 };   // 746 x 1072 → 100 : 143.7
 
@@ -386,7 +394,10 @@ export function renderPet(formId, opts = {}) {
     if (out.filter) filter = out.filter;
   }
 
-  const src = opts.size === 'sm' ? PHOTO.sm : PHOTO.md;
+  // opts.anim 指定动作时改用 GIF（道具层照常叠加）
+  const src = opts.anim && ANIM[opts.anim]
+    ? ANIM[opts.anim]
+    : (opts.size === 'sm' ? PHOTO.sm : PHOTO.md);
   const breathe = opts.reducedMotion ? '' : ' ks-breathe';
   const layer = (content, cls) => content.length
     ? `<svg class="${cls}" viewBox="0 0 ${VB.w} ${VB.h}" aria-hidden="true">${content.join('\n')}</svg>`

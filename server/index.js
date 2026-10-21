@@ -295,7 +295,7 @@ function serveStatic(req, res, pathname) {
 
 // ---------------------------------------------------------------- 入口
 
-const server = http.createServer(async (req, res) => {
+export async function handleRequest(req, res) {
   const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
   const { pathname } = url;
 
@@ -316,13 +316,17 @@ const server = http.createServer(async (req, res) => {
     // 统一兜底：不输出堆栈
     sendJson(res, 200, { ok: false, reason: 'INTERNAL', data: '' });
   }
-});
+}
 
-server.listen(CONFIG.PORT, () => {
-  const mode = CONFIG.MODE === 'live' ? 'live（已配置密钥，允许调用知乎开放平台）' : 'mock（全程本地语料）';
-  console.log('─'.repeat(52));
-  console.log('  看山进化 已启动');
-  console.log(`  地址：http://127.0.0.1:${CONFIG.PORT}`);
-  console.log(`  模式：${mode}`);
-  console.log('─'.repeat(52));
-});
+// 本地运行时启动完整 HTTP 服务；部署到 Vercel 时由 api/[...path].js 调用 handleRequest。
+if (!process.env.VERCEL) {
+  const server = http.createServer(handleRequest);
+  server.listen(CONFIG.PORT, () => {
+    const mode = CONFIG.MODE === 'live' ? 'live（已配置密钥，允许调用知乎开放平台）' : 'mock（全程本地语料）';
+    console.log('─'.repeat(52));
+    console.log('  看山进化 已启动');
+    console.log(`  地址：http://127.0.0.1:${CONFIG.PORT}`);
+    console.log(`  模式：${mode}`);
+    console.log('─'.repeat(52));
+  });
+}

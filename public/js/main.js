@@ -339,10 +339,29 @@ async function openRead(domainKey) {
 
   currentAnswer = data;
   $('answer-title').textContent = data.title;
-  $('answer-author').textContent = data.author || '知乎用户';
-  $('answer-votes').textContent = `${Number(data.voteCount || 0).toLocaleString('zh-CN')} 赞同`;
+
+  // 内置知识卡没有作者与赞同数，缺什么就不显示什么，不用占位文字冒充
+  const authorEl = $('answer-author');
+  const votesEl = $('answer-votes');
+  if (data.author) {
+    authorEl.textContent = data.author;
+    authorEl.hidden = false;
+  } else {
+    authorEl.hidden = true;
+  }
+  if (data.voteCount) {
+    votesEl.textContent = `${Number(data.voteCount).toLocaleString('zh-CN')} 赞同`;
+    votesEl.hidden = false;
+  } else {
+    votesEl.hidden = true;
+  }
+
   $('answer-source').textContent =
-    data.source === 'api' ? '知乎开放平台' : data.source === 'cache' ? '缓存内容' : '本地内容';
+    data.source === 'api'
+      ? '知乎开放平台'
+      : data.source === 'cache'
+        ? '缓存内容'
+        : '本地知识卡';
   $('answer-excerpt').textContent = data.excerpt;
 
   $('answer-loading').hidden = true;

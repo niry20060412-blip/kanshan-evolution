@@ -2,9 +2,17 @@
  * 前端 API 客户端
  * 所有请求都有超时与失败兜底，绝不向界面抛出堆栈。
  * 前端不持有任何密钥。
+ *
+ * 兜底策略：请求拿不到数据时，阅读页直接用内置知识卡（local-knowledge.js），
+ * 保证「选领域 → 读一篇 → 属性成长」这条主循环在纯静态部署下也不会断。
  */
 
+import { LOCAL_HOT, pickLocalAnswer } from './local-knowledge.js';
+
 const TIMEOUT_MS = 9000;
+
+/** 上一次发出的本地卡片标题，避免「换一篇」换到同一篇 */
+let lastLocalTitle = '';
 
 async function request(url, options = {}) {
   const controller = new AbortController();
@@ -24,13 +32,21 @@ export async function getHealth() {
   return request('/api/health');
 }
 
-/** 获取某领域的一篇回答；失败时由调用方使用本地兜底 */
+/** 获取某领域的一篇回答；失败时回退内置知识卡，保证阅读页不空着 */
 export async function fetchAnswer(domainKey) {
-  return request(`/api/knowledge/search?domain=${encodeURIComponent(domainKey)}`);
+  const res = await request(`/api/knowledge/search?domain=${encodeURIComponent(domainKey)}`);
+  if (res && res.ok && res.data) return res;
+
+  const card = pickLocalAnswer(domainKey, lastLocalTitle);
+  if (!card) return { ok: false, reason: 'NO_LOCAL_DATA', data: null };
+  lastLocalTitle = card.title;
+  return { ok: true, data: card, source: 'local-example' };
 }
 
 export async function fetchHot() {
-  return request('/api/hot');
+  const res = await request('/api/hot');
+  if (res && res.ok && Array.isArray(res.data) && res.data.length) return res;
+  return { ok: true, data: LOCAL_HOT, source: 'local-example' };
 }
 
 /** 见闻改写；失败返回 ok:false，调用方回退本地语料 */

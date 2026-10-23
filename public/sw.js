@@ -2,7 +2,7 @@
  * Service Worker — 看山进化
  * 功能：离线可用（缓存优先），支持 PWA 安装到桌面/手机
  */
-const CACHE = 'kanshan-v4';
+const CACHE = 'kanshan-v5';
 
 const PRECACHE = [
   '/',
@@ -14,6 +14,7 @@ const PRECACHE = [
   '/js/storage.js',
   '/js/game.js',
   '/js/api.js',
+  '/js/local-knowledge.js',
   '/js/persona.js',
   '/js/pet-renderer.js',
   '/js/config/domains.js',

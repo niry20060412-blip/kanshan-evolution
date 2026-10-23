@@ -1,8 +1,14 @@
 /**
  * Service Worker — 看山进化
- * 功能：离线可用（缓存优先），支持 PWA 安装到桌面/手机
+ *
+ * 策略（v6 起改为「网络优先」，修掉旧版「缓存优先」把内容永久锁死的坑）：
+ * - `/api/*`      纯网络，不缓存，避免返回过期数据
+ * - 页面导航      网络优先；断网回缓存，再不行回首页
+ * - js / css / json  网络优先：代码更新后一次性生效，不用等缓存过期
+ * - 图片等静态资源   缓存优先：体积大且基本不变，优先保证秒开与离线
+ * 离线时都回退到预缓存，保证「打开就有东西」。
  */
-const CACHE = 'kanshan-v5';
+const CACHE = 'kanshan-v6';
 
 const PRECACHE = [
   '/',
@@ -31,14 +37,22 @@ const PRECACHE = [
   '/assets/anim-work.gif',
   '/assets/anim-play.gif',
   '/assets/anim-doze.gif',
-  '/js/pet-window.js',
   '/manifest.json',
   '/manifest-pet.json'
 ];
 
 self.addEventListener('install', (e) => {
+  // 逐个缓存：某一个文件 404 时不让整次安装失败（旧版用 addAll，一失败就永远装不上）
   e.waitUntil(
-    caches.open(CACHE).then((c) => c.addAll(PRECACHE)).then(() => self.skipWaiting())
+    caches.open(CACHE).then((cache) =>
+      Promise.all(
+        PRECACHE.map((path) =>
+          cache.add(path).catch(() => {
+            /* 单个资源失败可忽略 */
+          })
+        )
+      )
+    ).then(() => self.skipWaiting())
   );
 });
 
@@ -50,23 +64,59 @@ self.addEventListener('activate', (e) => {
   );
 });
 
+/** 网络优先：联网时永远拿最新的，断网才用缓存 */
+async function networkFirst(request, fallbackPath) {
+  const cache = await caches.open(CACHE);
+  try {
+    const res = await fetch(request);
+    if (res && res.ok) {
+      cache.put(request, res.clone()).catch(() => {});
+    }
+    return res;
+  } catch {
+    const pathname = new URL(request.url).pathname;
+    const cached =
+      (await cache.match(request)) ||
+      (await cache.match(pathname)) ||
+      (fallbackPath ? await cache.match(fallbackPath) : null);
+    return cached || new Response('', { status: 504, statusText: 'Offline' });
+  }
+}
+
+/** 缓存优先：命中即返回，同时后台更新，保证下次是最新的 */
+async function cacheFirst(request) {
+  const cache = await caches.open(CACHE);
+  const cached = await cache.match(request);
+  const network = fetch(request)
+    .then((res) => {
+      if (res && res.ok) cache.put(request, res.clone()).catch(() => {});
+      return res;
+    })
+    .catch(() => null);
+
+  return cached || (await network) || new Response('', { status: 504, statusText: 'Offline' });
+}
+
 self.addEventListener('fetch', (e) => {
-  // 只处理 GET；API 请求走网络优先，失败时不兜底（避免返回旧数据）
   if (e.request.method !== 'GET') return;
   const url = new URL(e.request.url);
+  if (url.origin !== self.location.origin) return;
 
-  // 知乎 API / dialogue / rewrite 路由 → 纯网络，不缓存
+  // 接口请求：纯网络，绝不缓存
   if (url.pathname.startsWith('/api/')) return;
 
-  e.respondWith(
-    caches.match(e.request).then((cached) => {
-      const network = fetch(e.request).then((res) => {
-        if (res.ok) {
-          caches.open(CACHE).then((c) => c.put(e.request, res.clone()));
-        }
-        return res;
-      });
-      return cached || network;
-    })
-  );
+  // 页面导航
+  if (e.request.mode === 'navigate') {
+    e.respondWith(networkFirst(e.request, '/index.html'));
+    return;
+  }
+
+  // 代码与样式：网络优先，更新立刻生效
+  if (/\.(?:js|css|json|webmanifest)$/.test(url.pathname)) {
+    e.respondWith(networkFirst(e.request));
+    return;
+  }
+
+  // 其它静态资源（图片、字体等）
+  e.respondWith(cacheFirst(e.request));
 });

@@ -10,7 +10,8 @@ import { SOUVENIR_MAP } from './config/souvenirs.js';
 import { NPCS, NPC_MAP } from './config/npc.js';
 import { BUBBLE_CORPUS, CALL_CORPUS, EYECARE_LINES, pick } from './config/corpus.js';
 import { renderPet, renderThumb } from './pet-renderer.js';
-import * as api from './api.js';
+import * as api from './api.js?v=20261023b';
+import { pickLocalAnswer } from './local-knowledge.js';
 import {
   addAffinity, currentStage, currentAddress, settleLogin,
   completeReading, checkEvolution, totalAttrs,
@@ -329,7 +330,11 @@ async function openRead(domainKey) {
   window._pendingReadResult = null;
 
   const res = await api.fetchAnswer(domainKey);
-  const data = res && res.ok ? res.data : null;
+  let data = res && res.ok && res.data ? res.data : null;
+
+  // 双保险：即使接口层没带兜底（旧版脚本、接口异常、返回非 JSON），
+  // 这里也直接用内置知识卡，保证阅读页一定有内容。
+  if (!data) data = pickLocalAnswer(domainKey);
 
   if (!data) {
     // 极端情况：连本地兜底都没拿到，给出空状态而非白屏
@@ -1177,7 +1182,19 @@ function isIOS() {
 function initInstall() {
   // 注册 Service Worker：提供离线能力，也是可安装的前提
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js').catch(() => { /* 离线能力不可用不影响主流程 */ });
+    navigator.serviceWorker
+      .register('sw.js')
+      .then((reg) => {
+        // 主动检查更新：旧版把「缓存优先」写死了，不主动查会让旧脚本一直占位
+        reg.update().catch(() => {});
+        setInterval(() => reg.update().catch(() => {}), 60 * 1000);
+        document.addEventListener('visibilitychange', () => {
+          if (document.visibilityState === 'visible') reg.update().catch(() => {});
+        });
+      })
+      .catch(() => {
+        /* 离线能力不可用不影响主流程 */
+      });
   }
 
   const banner = $('install-banner');

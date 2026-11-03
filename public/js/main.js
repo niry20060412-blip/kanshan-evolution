@@ -2,7 +2,7 @@
  * 看山进化 — 主控制器
  * 页面路由、渲染、交互、外出结算、小游戏、对话。
  */
-import { loadState, saveState, ensureDaily } from './storage.js';
+import { loadState, saveState, resetState, ensureDaily } from './storage.js';
 import { DOMAINS, DOMAIN_MAP, ATTRIBUTES } from './config/domains.js';
 import { ALL_FORMS, FORM_MAP, RARITY_LABEL } from './config/forms.js';
 import { AFFINITY_STAGES, AFFINITY_RULES, BUBBLE_MIX } from './config/affinity.js';
@@ -1396,6 +1396,14 @@ function bindEvents() {
   });
   bindSwitches();
 
+  // 重置存档：清空本地记录，回到领养页重新开始
+  $('reset-btn').addEventListener('click', () => {
+    const ok = window.confirm('确定要重置吗？\n这会清空看山记得的一切（好感度、属性、图鉴、回忆），无法恢复。');
+    if (!ok) return;
+    resetState();
+    window.location.reload();
+  });
+
   // 通话入口：仅在它出门且开关打开时出现（需求 5）
   const callBtn = $('call-btn');
   callBtn.hidden = !(status === 'away' && state.features.callWhenAway);
@@ -1527,3 +1535,4 @@ function init() {
 }
 
 init();
+

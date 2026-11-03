@@ -1279,6 +1279,25 @@ body.is-floating .tabbar {
 .switch-row input[type=checkbox]:checked::after { transform: translateX(18px); }
 .switch-row input[type=checkbox]:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
+/* ---- 重置存档（危险操作）---- */
+.btn-danger {
+  background: transparent;
+  color: #c9504a;
+  border: 1.5px solid rgba(201, 80, 74, .45);
+}
+.btn-danger:active:not(:disabled) { background: rgba(201, 80, 74, .08); }
+body.is-night .btn-danger {
+  color: #e78b85;
+  border-color: rgba(231, 139, 133, .5);
+}
+.btn-block { width: 100%; margin-top: 14px; }
+.settings-note {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: var(--ink-faint);
+  text-align: center;
+}
+
 /* ---- 通话浮层（需求 5）---- */
 .call-overlay {
   position: fixed; inset: 0; z-index: 500;

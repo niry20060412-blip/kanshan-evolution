@@ -385,20 +385,25 @@ export function renderPet(formId, opts = {}) {
   const overs = [];
   let filter = '';
 
-  for (const key of form.parts || []) {
-    const build = PARTS[key];
-    if (!build) continue;
-    const out = build(p, opts) || {};
-    if (out.under) unders.push(out.under);
-    if (out.over) overs.push(out.over);
-    if (out.filter) filter = out.filter;
+  // opts.anim 指定动作时改用 GIF。GIF 是 320×320 方形、姿态也不同于静态 full 图，
+  // 道具层坐标（基于 full 图实测）套到 GIF 上必然错位，因此播放动作时跳过道具层。
+  const isAnim = Boolean(opts.anim && ANIM[opts.anim]);
+
+  if (!isAnim) {
+    for (const key of form.parts || []) {
+      const build = PARTS[key];
+      if (!build) continue;
+      const out = build(p, opts) || {};
+      if (out.under) unders.push(out.under);
+      if (out.over) overs.push(out.over);
+      if (out.filter) filter = out.filter;
+    }
   }
 
-  // opts.anim 指定动作时改用 GIF（道具层照常叠加）
   // 主体固定用 full 图：道具层坐标全部基于 kanshan-full.png 实测，
   // 若用 md/sm 小图会因构图/留白不同导致道具与主体错位。
   // sm 仅在剪影缩略图等无道具对齐需求的场景使用。
-  const src = opts.anim && ANIM[opts.anim]
+  const src = isAnim
     ? ANIM[opts.anim]
     : (opts.size === 'sm' ? PHOTO.sm : PHOTO.lg);
   const breathe = opts.reducedMotion ? '' : ' ks-breathe';

@@ -36,8 +36,8 @@ export const ANIM = {
   doze:  'assets/anim-doze.gif'
 };
 
-/** 道具层画布：与照片同比例（full 735×1062 → 100 : 144.5） */
-const VB = { w: 100, h: 144.5 };   // 735 x 1062 → 100 : 144.5
+/** 道具层画布：与照片同比例（full 735×1062 → 100 : 143.7，与全部道具锚点基准一致） */
+const VB = { w: 100, h: 143.7 };   // 道具坐标均按此比例实测
 
 function esc(s) {
   return String(s).replace(/[&<>"']/g, (c) => ({
@@ -53,10 +53,10 @@ const PARTS = {
   // ---- 头部 ----
   goggles: (p) => ({ over: `
     <g>
-      <rect x="29" y="16.4" width="38" height="6.8" rx="3.4" fill="${p.accent}" opacity=".92"/>
-      <circle cx="38.5" cy="19.8" r="5.2" fill="#cfe6f5" stroke="${p.accent}" stroke-width="1.3"/>
-      <circle cx="57" cy="19.8" r="5.2" fill="#cfe6f5" stroke="${p.accent}" stroke-width="1.3"/>
-      <path d="M43.7 19.8 h8.1" stroke="${p.accent}" stroke-width="1.6"/>
+      <rect x="29" y="26.4" width="38" height="6.8" rx="3.4" fill="${p.accent}" opacity=".92"/>
+      <circle cx="38.5" cy="29.8" r="5.2" fill="#cfe6f5" stroke="${p.accent}" stroke-width="1.3"/>
+      <circle cx="57" cy="29.8" r="5.2" fill="#cfe6f5" stroke="${p.accent}" stroke-width="1.3"/>
+      <path d="M43.7 29.8 h8.1" stroke="${p.accent}" stroke-width="1.6"/>
     </g>` }),
 
   beret: (p) => ({ over: `

@@ -350,7 +350,8 @@ function go(msg) {
 
 window.reloadFrame = () => {
   const f = document.getElementById('app-frame');
-  f.src = f.src;
+  // 用时间戳强制刷新，避免 f.src=f.src 在 URL 相同时不真正重新加载
+  f.src = '/?t=' + Date.now();
 };
 
 const SAMPLE_ANSWER = {
@@ -377,8 +378,7 @@ const SCENES = {
   preEvolve() {
     write(baseSave({
       attrs: { tech: 40, art: 0, work: 0, emotion: 0, life: 10, history: 0 },
-      affinity: 60, reachedStage: 'stranger',
-      domainCounts: { tech: 4, life: 1 }, recentAnswers: [SAMPLE_ANSWER]
+      affinity: 60, reachedStage: 'stranger'
     }));
     return '再喂一篇科技就会进化';
   },

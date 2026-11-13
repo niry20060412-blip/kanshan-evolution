@@ -53,10 +53,10 @@ const PARTS = {
   // ---- 头部 ----
   goggles: (p) => ({ over: `
     <g>
-      <rect x="29" y="26.4" width="38" height="6.8" rx="3.4" fill="${p.accent}" opacity=".92"/>
-      <circle cx="38.5" cy="29.8" r="5.2" fill="#cfe6f5" stroke="${p.accent}" stroke-width="1.3"/>
-      <circle cx="57" cy="29.8" r="5.2" fill="#cfe6f5" stroke="${p.accent}" stroke-width="1.3"/>
-      <path d="M43.7 29.8 h8.1" stroke="${p.accent}" stroke-width="1.6"/>
+      <rect x="29" y="41.2" width="38" height="6.8" rx="3.4" fill="${p.accent}" opacity=".92"/>
+      <circle cx="38.5" cy="44.6" r="5.2" fill="#cfe6f5" stroke="${p.accent}" stroke-width="1.3"/>
+      <circle cx="57" cy="44.6" r="5.2" fill="#cfe6f5" stroke="${p.accent}" stroke-width="1.3"/>
+      <path d="M43.7 44.6 h8.1" stroke="${p.accent}" stroke-width="1.6"/>
     </g>` }),
 
   beret: (p) => ({ over: `

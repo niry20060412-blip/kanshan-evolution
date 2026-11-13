@@ -321,7 +321,7 @@ export async function handleRequest(req, res) {
 // 本地运行时启动完整 HTTP 服务；部署到 Vercel 时由 api/[...path].js 调用 handleRequest。
 if (!process.env.VERCEL) {
   const server = http.createServer(handleRequest);
-  server.listen(CONFIG.PORT, '0.0.0.0', () => {
+  server.listen(CONFIG.PORT, () => {
     const mode = CONFIG.MODE === 'live' ? 'live（已配置密钥，允许调用知乎开放平台）' : 'mock（全程本地语料）';
     console.log('─'.repeat(52));
     console.log('  看山进化 已启动');

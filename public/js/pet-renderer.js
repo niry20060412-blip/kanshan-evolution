@@ -36,8 +36,8 @@ export const ANIM = {
   doze:  'assets/anim-doze.gif'
 };
 
-/** 道具层画布：与照片同比例（full 735×1062 → 100 : 143.7，与全部道具锚点基准一致） */
-const VB = { w: 100, h: 143.7 };   // 道具坐标均按此比例实测
+/** 道具层画布：与照片同比例 */
+const VB = { w: 100, h: 143.7 };   // 746 x 1072 → 100 : 143.7
 
 function esc(s) {
   return String(s).replace(/[&<>"']/g, (c) => ({
@@ -53,10 +53,10 @@ const PARTS = {
   // ---- 头部 ----
   goggles: (p) => ({ over: `
     <g>
-      <rect x="29" y="41.2" width="38" height="6.8" rx="3.4" fill="${p.accent}" opacity=".92"/>
-      <circle cx="38.5" cy="44.6" r="5.2" fill="#cfe6f5" stroke="${p.accent}" stroke-width="1.3"/>
-      <circle cx="57" cy="44.6" r="5.2" fill="#cfe6f5" stroke="${p.accent}" stroke-width="1.3"/>
-      <path d="M43.7 44.6 h8.1" stroke="${p.accent}" stroke-width="1.6"/>
+      <rect x="29" y="16.4" width="38" height="6.8" rx="3.4" fill="${p.accent}" opacity=".92"/>
+      <circle cx="38.5" cy="19.8" r="5.2" fill="#cfe6f5" stroke="${p.accent}" stroke-width="1.3"/>
+      <circle cx="57" cy="19.8" r="5.2" fill="#cfe6f5" stroke="${p.accent}" stroke-width="1.3"/>
+      <path d="M43.7 19.8 h8.1" stroke="${p.accent}" stroke-width="1.6"/>
     </g>` }),
 
   beret: (p) => ({ over: `
@@ -385,27 +385,19 @@ export function renderPet(formId, opts = {}) {
   const overs = [];
   let filter = '';
 
-  // opts.anim 指定动作时改用 GIF。GIF 是 320×320 方形、姿态也不同于静态 full 图，
-  // 道具层坐标（基于 full 图实测）套到 GIF 上必然错位，因此播放动作时跳过道具层。
-  const isAnim = Boolean(opts.anim && ANIM[opts.anim]);
-
-  if (!isAnim) {
-    for (const key of form.parts || []) {
-      const build = PARTS[key];
-      if (!build) continue;
-      const out = build(p, opts) || {};
-      if (out.under) unders.push(out.under);
-      if (out.over) overs.push(out.over);
-      if (out.filter) filter = out.filter;
-    }
+  for (const key of form.parts || []) {
+    const build = PARTS[key];
+    if (!build) continue;
+    const out = build(p, opts) || {};
+    if (out.under) unders.push(out.under);
+    if (out.over) overs.push(out.over);
+    if (out.filter) filter = out.filter;
   }
 
-  // 主体固定用 full 图：道具层坐标全部基于 kanshan-full.png 实测，
-  // 若用 md/sm 小图会因构图/留白不同导致道具与主体错位。
-  // sm 仅在剪影缩略图等无道具对齐需求的场景使用。
-  const src = isAnim
+  // opts.anim 指定动作时改用 GIF（道具层照常叠加）
+  const src = opts.anim && ANIM[opts.anim]
     ? ANIM[opts.anim]
-    : (opts.size === 'sm' ? PHOTO.sm : PHOTO.lg);
+    : (opts.size === 'sm' ? PHOTO.sm : PHOTO.md);
   const breathe = opts.reducedMotion ? '' : ' ks-breathe';
   const layer = (content, cls) => content.length
     ? `<svg class="${cls}" viewBox="0 0 ${VB.w} ${VB.h}" aria-hidden="true">${content.join('\n')}</svg>`

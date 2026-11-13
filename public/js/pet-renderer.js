@@ -36,8 +36,8 @@ export const ANIM = {
   doze:  'assets/anim-doze.gif'
 };
 
-/** 道具层画布：与照片同比例 */
-const VB = { w: 100, h: 143.7 };   // 746 x 1072 → 100 : 143.7
+/** 道具层画布：与照片同比例（full 735×1062 → 100 : 144.5） */
+const VB = { w: 100, h: 144.5 };   // 735 x 1062 → 100 : 144.5
 
 function esc(s) {
   return String(s).replace(/[&<>"']/g, (c) => ({
@@ -395,9 +395,12 @@ export function renderPet(formId, opts = {}) {
   }
 
   // opts.anim 指定动作时改用 GIF（道具层照常叠加）
+  // 主体固定用 full 图：道具层坐标全部基于 kanshan-full.png 实测，
+  // 若用 md/sm 小图会因构图/留白不同导致道具与主体错位。
+  // sm 仅在剪影缩略图等无道具对齐需求的场景使用。
   const src = opts.anim && ANIM[opts.anim]
     ? ANIM[opts.anim]
-    : (opts.size === 'sm' ? PHOTO.sm : PHOTO.md);
+    : (opts.size === 'sm' ? PHOTO.sm : PHOTO.lg);
   const breathe = opts.reducedMotion ? '' : ' ks-breathe';
   const layer = (content, cls) => content.length
     ? `<svg class="${cls}" viewBox="0 0 ${VB.w} ${VB.h}" aria-hidden="true">${content.join('\n')}</svg>`

@@ -1501,14 +1501,14 @@ function init() {
   $('app').hidden = false;
   $('tabbar').hidden = false;
 
-  // 登录结算：连续登录奖励 + 衰减（阶段不回退）
-  const events = settleLogin(state);
+  // 演示模式：跳过登录结算与形态重判，保证控制台按钮「所见即所得」
+  const events = state.demoMode ? [] : settleLogin(state);
 
   // 刷新即结算外出
   if (outingStatus(state) === 'away') startCountdown();
 
-  // 形态可能因配置变化需要重新判定
-  checkEvolution(state);
+  // 形态可能因配置变化需要重新判定（演示模式下保持存档预设形态不变）
+  if (!state.demoMode) checkEvolution(state);
   persist();
 
   $('demo-toggle').setAttribute('aria-pressed', String(state.demoMode));
